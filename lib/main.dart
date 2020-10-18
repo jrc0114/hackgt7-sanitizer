@@ -98,6 +98,10 @@ class _MapPageState extends State<MapPage> {
                       final marker = Marker(
                           markerId: MarkerId(doc['name']),
                           position: LatLng(doc['lat'], doc['lng']),
+                          icon: BitmapDescriptor.defaultMarkerWithHue(
+                              doc['has_sanitizer']
+                                  ? BitmapDescriptor.hueGreen
+                                  : BitmapDescriptor.hueRed),
                           infoWindow: InfoWindow(
                             title: doc['name'],
                             snippet: doc['address'],
