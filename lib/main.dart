@@ -35,7 +35,7 @@ class _MapPageState extends State<MapPage> {
     _getCurrentLocation();
   }
 
-  _getCurrentLocation() {
+  void _getCurrentLocation() {
     geolocator
         .getCurrentPosition(desiredAccuracy: LocationAccuracy.best)
         .then((Position position) {
@@ -117,13 +117,16 @@ class UserPage extends StatefulWidget {
 }
 
 class _UserPageState extends State<UserPage> {
-  String name;
+  String restaurantName;
   String address;
-  int lat;
-  int lng;
-  bool hasSanitizer;
+  int latitude;
+  int longitude;
+  bool hasHandSanitizer;
 
-  final myController = TextEditingController();
+  final nameController = TextEditingController();
+  final addressController = TextEditingController();
+  final latController = TextEditingController();
+  final lngController = TextEditingController();
 
   void _showToast(BuildContext context) {
     final scaffold = Scaffold.of(context);
@@ -135,7 +138,7 @@ class _UserPageState extends State<UserPage> {
   @override
   void dispose() {
     // Clean up the controller when the widget is disposed.
-    myController.dispose();
+    nameController.dispose();
     super.dispose();
   }
 
@@ -147,9 +150,13 @@ class _UserPageState extends State<UserPage> {
     Future<void> addRestaurant() {
       // Call the user's CollectionReference to add a new user
       return restaurant
-          .document(name.toLowerCase().replaceAll(RegExp(r"\s+"), ""))
+          .document(restaurantName.toLowerCase().replaceAll(RegExp(r"\s+"), ""))
           .setData({
-        'name': name, // John Doe
+        'name': restaurantName,
+        'address': address,
+        // 'lat': latitude,
+        // 'lng': longitude,
+        // 'has_sanitizer': hasHandSanitizer,
       }).then((value) {
         print('Restaurant Added');
       }).catchError((error) => print('Failed to add restaurant: $error'));
@@ -162,25 +169,50 @@ class _UserPageState extends State<UserPage> {
         builder: (context) => Center(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
-            child: Column(children: <Widget>[
-              TextField(
-                decoration: InputDecoration(
-                  border: InputBorder.none,
-                  hintText: 'Enter restaurant name',
-                  labelText: 'name',
-                ),
-                controller: myController,
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  name = myController.text;
-                  addRestaurant();
-                  _showToast(context);
-                  // Navigator.pop(context);
-                },
-                child: Text('Submit'),
-              ),
-            ]),
+            child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  TextField(
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Restaurant',
+                    ),
+                    controller: nameController,
+                  ),
+                  TextField(
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Address',
+                    ),
+                    controller: addressController,
+                  ),
+                  TextField(
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Latitude',
+                    ),
+                    controller: latController,
+                  ),
+                  TextField(
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Longitude',
+                    ),
+                    controller: lngController,
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      restaurantName = nameController.text;
+                      address = addressController.text;
+                      // latitude = latController.text;
+                      // longitude = lngController.text;
+                      addRestaurant();
+                      _showToast(context);
+                      // Navigator.pop(context);
+                    },
+                    child: Text('Submit'),
+                  ),
+                ]),
           ),
         ),
       ),
