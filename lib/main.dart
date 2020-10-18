@@ -117,17 +117,71 @@ class UserPage extends StatefulWidget {
 }
 
 class _UserPageState extends State<UserPage> {
+  String name;
+  String address;
+  int lat;
+  int lng;
+  bool hasSanitizer;
+
+  final myController = TextEditingController();
+
+  void _showToast(BuildContext context) {
+    final scaffold = Scaffold.of(context);
+    scaffold.showSnackBar(SnackBar(
+      content: const Text('Restaurant added'),
+    ));
+  }
+
+  @override
+  void dispose() {
+    // Clean up the controller when the widget is disposed.
+    myController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
+    CollectionReference restaurant =
+        Firestore.instance.collection('restaurant');
+
+    Future<void> addRestaurant() {
+      // Call the user's CollectionReference to add a new user
+      return restaurant
+          .document(name.toLowerCase().replaceAll(RegExp(r"\s+"), ""))
+          .setData({
+        'name': name, // John Doe
+      }).then((value) {
+        print('Restaurant Added');
+      }).catchError((error) => print('Failed to add restaurant: $error'));
+    }
+
     return Scaffold(
-      appBar: AppBar(title: Text('HackGT7 Sanitizer')),
+      appBar: AppBar(title: Text('Submit a restaurant')),
       // body: _buildBody(context),
-      body: Center(
-        child: ElevatedButton(
-          onPressed: () {
-            // Navigate back to first route when tapped.
-          },
-          child: Text('Go back!'),
+      body: Builder(
+        builder: (context) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(children: <Widget>[
+              TextField(
+                decoration: InputDecoration(
+                  border: InputBorder.none,
+                  hintText: 'Enter restaurant name',
+                  labelText: 'name',
+                ),
+                controller: myController,
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  name = myController.text;
+                  addRestaurant();
+                  _showToast(context);
+                  // Navigator.pop(context);
+                },
+                child: Text('Submit'),
+              ),
+            ]),
+          ),
         ),
       ),
     );
