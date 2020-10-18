@@ -35,7 +35,7 @@ class _MapPageState extends State<MapPage> {
     _getCurrentLocation();
   }
 
-  _getCurrentLocation() {
+  void _getCurrentLocation() {
     geolocator
         .getCurrentPosition(desiredAccuracy: LocationAccuracy.best)
         .then((Position position) {
@@ -117,18 +117,47 @@ class UserPage extends StatefulWidget {
 }
 
 class _UserPageState extends State<UserPage> {
+  String restaurantName;
+  String address;
+  String latitude;
+  String longitude;
+  bool hasHandSanitizer;
+
+  List<Widget> inputs = [
+    TextField(
+      decoration: InputDecoration(
+        border: OutlineInputBorder(),
+        labelText: 'Restaurant',
+      ),
+    ),
+    TextField(
+      decoration: InputDecoration(
+        border: OutlineInputBorder(),
+        labelText: 'Address',
+      ),
+    ),
+    TextField(
+      decoration: InputDecoration(
+        border: OutlineInputBorder(),
+        labelText: 'Latitude',
+      ),
+    ),
+    TextField(
+      decoration: InputDecoration(
+        border: OutlineInputBorder(),
+        labelText: 'Longitude',
+      ),
+    ),
+    Radio()
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('HackGT7 Sanitizer')),
-      // body: _buildBody(context),
-      body: Center(
-        child: ElevatedButton(
-          onPressed: () {
-            // Navigate back to first route when tapped.
-          },
-          child: Text('Go back!'),
-        ),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: inputs,
       ),
     );
   }
