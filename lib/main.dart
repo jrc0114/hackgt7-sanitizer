@@ -56,6 +56,9 @@ class _MapPageState extends State<MapPage> {
           final marker = Marker(
               markerId: MarkerId(doc['name']),
               position: LatLng(doc['lat'], doc['lng']),
+              icon: BitmapDescriptor.defaultMarkerWithHue(doc['has_sanitizer']
+                  ? BitmapDescriptor.hueGreen
+                  : BitmapDescriptor.hueRed),
               infoWindow: InfoWindow(
                 title: doc['name'],
                 snippet: doc['address'],
@@ -121,43 +124,142 @@ class _UserPageState extends State<UserPage> {
   String address;
   String latitude;
   String longitude;
-  bool hasHandSanitizer;
+  int hasHandSanitizer = 0;
 
-  List<Widget> inputs = [
-    TextField(
-      decoration: InputDecoration(
-        border: OutlineInputBorder(),
-        labelText: 'Restaurant',
-      ),
-    ),
-    TextField(
-      decoration: InputDecoration(
-        border: OutlineInputBorder(),
-        labelText: 'Address',
-      ),
-    ),
-    TextField(
-      decoration: InputDecoration(
-        border: OutlineInputBorder(),
-        labelText: 'Latitude',
-      ),
-    ),
-    TextField(
-      decoration: InputDecoration(
-        border: OutlineInputBorder(),
-        labelText: 'Longitude',
-      ),
-    ),
-    Radio()
-  ];
+  final nameController = TextEditingController();
+  final addressController = TextEditingController();
+  final latController = TextEditingController();
+  final lngController = TextEditingController();
+
+  void _showToast(BuildContext context) {
+    final scaffold = Scaffold.of(context);
+    scaffold.showSnackBar(SnackBar(
+      content: const Text('Restaurant added'),
+    ));
+  }
+
+  @override
+  void dispose() {
+    // Clean up the controller when the widget is disposed.
+    nameController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    CollectionReference restaurant =
+        Firestore.instance.collection('restaurant');
+
+    Future<void> addRestaurant() {
+      // Call the user's CollectionReference to add a new user
+      return restaurant
+          .document(restaurantName.toLowerCase().replaceAll(RegExp(r"\s+"), ""))
+          .setData({
+        'name': restaurantName,
+        'address': address,
+        'lat': double.parse(latitude),
+        'lng': double.parse(longitude),
+        'has_sanitizer': (hasHandSanitizer == 1 ? true : false),
+      }).then((value) {
+        print('Restaurant Added');
+      }).catchError((error) => print('Failed to add restaurant: $error'));
+    }
+
     return Scaffold(
-      appBar: AppBar(title: Text('HackGT7 Sanitizer')),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: inputs,
+      appBar: AppBar(title: Text('Submit a restaurant')),
+      // body: _buildBody(context),
+      body: Builder(
+        builder: (context) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                TextField(
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Restaurant',
+                  ),
+                  controller: nameController,
+                ),
+                Text(''),
+                TextField(
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Address',
+                  ),
+                  controller: addressController,
+                ),
+                Text(''),
+                TextField(
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Latitude',
+                  ),
+                  controller: latController,
+                ),
+                Text(''),
+                TextField(
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Longitude',
+                  ),
+                  controller: lngController,
+                ),
+                Text(''),
+                Row(
+                  children: [
+                    Text('Offers Hand Sanitizer?'),
+                    Padding(
+                      padding: EdgeInsets.all(10.0),
+                    ),
+                    Radio<int>(
+                      value: 1,
+                      groupValue: hasHandSanitizer,
+                      onChanged: (int val) {
+                        setState(() {
+                          hasHandSanitizer = val;
+                        });
+                      },
+                    ),
+                    Text('Yes'),
+                    Padding(
+                      padding: EdgeInsets.all(10.0),
+                    ),
+                    Radio<int>(
+                      value: 0,
+                      groupValue: hasHandSanitizer,
+                      onChanged: (int val) {
+                        setState(() {
+                          hasHandSanitizer = val;
+                        });
+                      },
+                    ),
+                    Text('No'),
+                  ],
+                ),
+                Text(''),
+                ElevatedButton(
+                  onPressed: () {
+                    restaurantName = nameController.text;
+                    address = addressController.text;
+                    latitude = latController.text;
+                    longitude = lngController.text;
+                    if (restaurantName != "" &&
+                        address != "" &&
+                        double.tryParse(latitude) != null &&
+                        double.tryParse(longitude) != null) {
+                      addRestaurant();
+                      _showToast(context);
+                      // Navigator.pop(context);
+                    }
+                  },
+                  child: Text('Submit'),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
