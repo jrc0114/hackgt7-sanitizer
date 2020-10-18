@@ -10,19 +10,19 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'HackGT7 Sanitizer',
-      home: MyHomePage(),
+      home: MapPage(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
+class MapPage extends StatefulWidget {
   @override
-  _MyHomePageState createState() {
-    return _MyHomePageState();
+  _MapPageState createState() {
+    return _MapPageState();
   }
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MapPageState extends State<MapPage> {
   LatLng _center;
   // LatLng _center = LatLng(32.602798, -85.488960);
   final Map<String, Marker> _markers = {};
@@ -71,7 +71,17 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('HackGT7 Sanitizer')),
+      appBar: AppBar(title: Text('HackGT7 Sanitizer'), actions: <Widget>[
+        IconButton(
+          icon: Icon(Icons.add),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => UserPage()),
+            );
+          },
+        ),
+      ]),
       // body: _buildBody(context),
       body: _center == null
           ? Container(
@@ -95,6 +105,31 @@ class _MyHomePageState extends State<MyHomePage> {
               myLocationEnabled: true,
               markers: _markers.values.toSet(),
             ),
+    );
+  }
+}
+
+class UserPage extends StatefulWidget {
+  @override
+  _UserPageState createState() {
+    return _UserPageState();
+  }
+}
+
+class _UserPageState extends State<UserPage> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('HackGT7 Sanitizer')),
+      // body: _buildBody(context),
+      body: Center(
+        child: ElevatedButton(
+          onPressed: () {
+            // Navigate back to first route when tapped.
+          },
+          child: Text('Go back!'),
+        ),
+      ),
     );
   }
 }
