@@ -135,9 +135,9 @@ class UserPage extends StatefulWidget {
 class _UserPageState extends State<UserPage> {
   String restaurantName;
   String address;
-  int latitude;
-  int longitude;
-  bool hasHandSanitizer;
+  String latitude;
+  String longitude;
+  int hasHandSanitizer = 0;
 
   final nameController = TextEditingController();
   final addressController = TextEditingController();
@@ -161,18 +161,18 @@ class _UserPageState extends State<UserPage> {
   @override
   Widget build(BuildContext context) {
     CollectionReference restaurant =
-        Firestore.instance.collection('restaurant');
+        FirebaseFirestore.instance.collection('restaurant');
 
     Future<void> addRestaurant() {
       // Call the user's CollectionReference to add a new user
       return restaurant
-          .document(restaurantName.toLowerCase().replaceAll(RegExp(r"\s+"), ""))
-          .setData({
+          .doc(restaurantName.toLowerCase().replaceAll(RegExp(r"\s+"), ""))
+          .set({
         'name': restaurantName,
         'address': address,
-        // 'lat': latitude,
-        // 'lng': longitude,
-        // 'has_sanitizer': hasHandSanitizer,
+        'lat': double.parse(latitude),
+        'lng': double.parse(longitude),
+        'has_sanitizer': (hasHandSanitizer == 1 ? true : false),
       }).then((value) {
         print('Restaurant Added');
       }).catchError((error) => print('Failed to add restaurant: $error'));
@@ -186,49 +186,91 @@ class _UserPageState extends State<UserPage> {
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  TextField(
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'Restaurant',
-                    ),
-                    controller: nameController,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                TextField(
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Restaurant',
                   ),
-                  TextField(
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'Address',
-                    ),
-                    controller: addressController,
+                  controller: nameController,
+                ),
+                Text(''),
+                TextField(
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Address',
                   ),
-                  TextField(
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'Latitude',
-                    ),
-                    controller: latController,
+                  controller: addressController,
+                ),
+                Text(''),
+                TextField(
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Latitude',
                   ),
-                  TextField(
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'Longitude',
-                    ),
-                    controller: lngController,
+                  controller: latController,
+                ),
+                Text(''),
+                TextField(
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Longitude',
                   ),
-                  ElevatedButton(
-                    onPressed: () {
-                      restaurantName = nameController.text;
-                      address = addressController.text;
-                      // latitude = latController.text;
-                      // longitude = lngController.text;
+                  controller: lngController,
+                ),
+                Text(''),
+                Row(
+                  children: [
+                    Text('Offers Hand Sanitizer?'),
+                    Padding(
+                      padding: EdgeInsets.all(10.0),
+                    ),
+                    Radio<int>(
+                      value: 1,
+                      groupValue: hasHandSanitizer,
+                      onChanged: (int val) {
+                        setState(() {
+                          hasHandSanitizer = val;
+                        });
+                      },
+                    ),
+                    Text('Yes'),
+                    Padding(
+                      padding: EdgeInsets.all(10.0),
+                    ),
+                    Radio<int>(
+                      value: 0,
+                      groupValue: hasHandSanitizer,
+                      onChanged: (int val) {
+                        setState(() {
+                          hasHandSanitizer = val;
+                        });
+                      },
+                    ),
+                    Text('No'),
+                  ],
+                ),
+                Text(''),
+                ElevatedButton(
+                  onPressed: () {
+                    restaurantName = nameController.text;
+                    address = addressController.text;
+                    latitude = latController.text;
+                    longitude = lngController.text;
+                    if (restaurantName != "" &&
+                        address != "" &&
+                        double.tryParse(latitude) != null &&
+                        double.tryParse(longitude) != null) {
                       addRestaurant();
                       _showToast(context);
                       // Navigator.pop(context);
-                    },
-                    child: Text('Submit'),
-                  ),
-                ]),
+                    }
+                  },
+                  child: Text('Submit'),
+                ),
+              ],
+            ),
           ),
         ),
       ),
