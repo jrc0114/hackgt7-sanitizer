@@ -9,7 +9,7 @@ import 'package:geocoder/geocoder.dart';
 
 void main() => runApp(MyApp());
 
-const API_KEY = 'AIzaSyCK9tlFUogHpy7kSkwdtyCPYSpH0E0JV4A';
+const API_KEY = 'API_KEY';
 
 GoogleMapsPlaces _places = GoogleMapsPlaces(apiKey: API_KEY);
 
