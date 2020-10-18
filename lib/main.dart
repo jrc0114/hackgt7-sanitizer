@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
@@ -47,29 +48,9 @@ class _MapPageState extends State<MapPage> {
     });
   }
 
-  Future<void> _onMapCreated(GoogleMapController controller) async {
-    setState(() {
-      _markers.clear();
-      Firestore.instance.collection('restaurant').getDocuments().then((docs) {
-        docs.documents.forEach((doc) {
-          print(doc.documentID);
-          final marker = Marker(
-              markerId: MarkerId(doc['name']),
-              position: LatLng(doc['lat'], doc['lng']),
-              infoWindow: InfoWindow(
-                title: doc['name'],
-                snippet: doc['address'],
-              ));
-          setState(() {
-            _markers[doc.documentID] = marker;
-          });
-        });
-      });
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
+    Firebase.initializeApp();
     return Scaffold(
       appBar: AppBar(title: Text('HackGT7 Sanitizer'), actions: <Widget>[
         IconButton(
@@ -93,17 +74,52 @@ class _MapPageState extends State<MapPage> {
                 ),
               ),
             )
-          : GoogleMap(
-              onMapCreated: _onMapCreated,
-              zoomGesturesEnabled: true,
-              initialCameraPosition: CameraPosition(
-                // target: const LatLng(0, 0),
-                // zoom: 2,
-                target: _center,
-                zoom: 15.0,
-              ),
-              myLocationEnabled: true,
-              markers: _markers.values.toSet(),
+          : Stack(
+              children: [
+                StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('restaurant')
+                      .snapshots(),
+                  builder: (BuildContext context,
+                      AsyncSnapshot<QuerySnapshot> snapshot) {
+                    print('firestore run');
+                    if (snapshot.hasError) {
+                      print('something went wrong');
+                      return Text('Something went wrong');
+                    }
+
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      print('firestone is loading');
+                      return Text("Loading");
+                    }
+                    print(snapshot.data.docs);
+                    snapshot.data.docs.forEach((queryDocumentSnapshot) {
+                      final doc = queryDocumentSnapshot.data();
+                      final marker = Marker(
+                          markerId: MarkerId(doc['name']),
+                          position: LatLng(doc['lat'], doc['lng']),
+                          infoWindow: InfoWindow(
+                            title: doc['name'],
+                            snippet: doc['address'],
+                          ));
+                      // setState(() {
+                      _markers[queryDocumentSnapshot.id] = marker;
+                      // });
+                    });
+                    return GoogleMap(
+                      zoomGesturesEnabled: true,
+                      initialCameraPosition: CameraPosition(
+                        // target: const LatLng(0, 0),
+                        // zoom: 2,
+                        target: _center,
+                        zoom: 15.0,
+                      ),
+                      myLocationEnabled: true,
+                      markers: _markers.values.toSet(),
+                    );
+                  },
+                ),
+              ],
             ),
     );
   }
